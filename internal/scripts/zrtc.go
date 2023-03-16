@@ -39,9 +39,6 @@ func (z *ZrtcOp) ListZrtcs() ([]*ZRTC, error) {
 		return nil, err
 	}
 
-	// 这里要格式化再输出，因为 ReadAll 返回的是字节切片
-	// fmt.Printf("%s\n", bytes)
-
 	zrtcList := make([]*ZRTC, 0)
 	match := re.FindAllStringSubmatch(string(bytes), -1)
 
@@ -55,12 +52,12 @@ func (z *ZrtcOp) ListZrtcs() ([]*ZRTC, error) {
 	return zrtcList, nil
 }
 
-func (z *ZrtcOp) DownloadZrtc(path string) (map[string]string, error) {
+func (z *ZrtcOp) DownloadZrtc(path string) ([]string, error) {
 	zrtcList, err := z.ListZrtcs()
 	if err != nil {
 		return nil, err
 	}
-	ans := make(map[string]string)
+	ans := make([]string, 0)
 
 	flag := false
 	for _, item := range zrtcList {
@@ -70,18 +67,18 @@ func (z *ZrtcOp) DownloadZrtc(path string) (map[string]string, error) {
 		}
 	}
 	if !flag {
-		log.Fatalf("No such zrtc: %v", path)
+		log.Printf("No such zrtc: %v", path)
 		return nil, ErrNoSuchZRTC
 	}
 
-	output, err := execute("wget", zrtcURL+path, "-O", "zrtc0", "-q")
-	ans["wget"] = output
+	output, err := execute("wget", zrtcURL+path, "-O", "zrtc", "-q")
+	ans = append(ans, output)
 	if err != nil {
 		return ans, err
 	}
 
-	output2, err := execute("chmod", "+x", "zrtc0")
-	ans["chmod"] = output2
+	output2, err := execute("chmod", "+x", "zrtc")
+	ans = append(ans, output2)
 	if err != nil {
 		return ans, err
 	}

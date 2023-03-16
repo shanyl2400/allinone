@@ -2,15 +2,13 @@ package scripts
 
 import (
 	"errors"
-	"fmt"
+	"gomssbuilder/internal/config"
 	"log"
 	"os/exec"
 	"strings"
 )
 
 var (
-	gomssDir = "/home/shanyonglong/gomss"
-
 	ErrNoSuchBranch = errors.New("no such branch")
 )
 
@@ -31,11 +29,11 @@ func (g *GomssOp) GetBranches() ([]string, error) {
 	return branches, nil
 }
 
-func (g *GomssOp) Checkout(branchName string) error {
+func (g *GomssOp) Checkout(branchName string) (string, error) {
 	//checkout & pull
 	branches, err := g.GetBranches()
 	if err != nil {
-		return err
+		return "", err
 	}
 	flag := false
 	for _, branch := range branches {
@@ -45,50 +43,57 @@ func (g *GomssOp) Checkout(branchName string) error {
 		}
 	}
 	if !flag {
-		log.Fatalf("No such branch: %v", branchName)
-		return ErrNoSuchBranch
+		log.Printf("No such branch: %v", branchName)
+		return "", ErrNoSuchBranch
 	}
 
 	return g.checkout(branchName)
 }
 
-func (g *GomssOp) Build() (map[string]string, error) {
-	ans := make(map[string]string)
+func (g *GomssOp) Build(localZRTC bool) ([]string, error) {
+	ans := make([]string, 0)
 	output, err := execute("go", "mod", "tidy")
-	ans["get"] = output
+	ans = append(ans, output)
 	if err != nil {
 		return ans, err
 	}
 
-	output2, err := execute("make")
-	ans["make"] = output2
-	if err != nil {
-		return ans, err
+	if localZRTC {
+		output2, err := execute("make", "tags=\"nolibopusfile zrtcoutside\"")
+		ans = append(ans, output2)
+		if err != nil {
+			return ans, err
+		}
+	} else {
+		output2, err := execute("make", "tags=\"nolibopusfile\"")
+		ans = append(ans, output2)
+		if err != nil {
+			return ans, err
+		}
 	}
+
 	return ans, nil
 }
 
 func (g *GomssOp) Publish(version string) (string, error) {
-	data, err := execute("sh", "publish2.sh", "gomss", version)
+	data, err := execute("sh", "publish_gomss.sh", "gomss", version)
 	if err != nil {
 		return data, err
 	}
 	return data, nil
 }
 
-func (g *GomssOp) checkout(name string) error {
-	_, err := execute("git", "checkout", name)
+func (g *GomssOp) checkout(name string) (string, error) {
+	resp, err := execute("git", "checkout", name)
 	if err != nil {
-		log.Fatalf("failed to call cmd.Run(): %v", err)
-		return err
+		return resp, err
 	}
-	return nil
+	return resp, nil
 }
 
 func (g *GomssOp) fetch() error {
 	_, err := execute("git", "fetch")
 	if err != nil {
-		log.Fatalf("failed to call cmd.Run(): %v", err)
 		return err
 	}
 	return nil
@@ -97,7 +102,6 @@ func (g *GomssOp) fetch() error {
 func (g *GomssOp) branches() ([]string, error) {
 	data, err := execute("git", "branch", "-r")
 	if err != nil {
-		log.Fatalf("failed to call cmd.Run(): %v", err)
 		return nil, err
 	}
 
@@ -114,11 +118,10 @@ func (g *GomssOp) branches() ([]string, error) {
 
 func execute(name string, params ...string) (string, error) {
 	cmd := exec.Command(name, params...)
-	cmd.Dir = gomssDir
+	cmd.Dir = config.GetConfig().GomssPath
 	data, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println(string(data))
-		log.Fatalf("failed to call run command %v, error: %v", name, err)
+		log.Printf("failed to call run command %v, params: %v, error: %v", name, params, err)
 		return string(data), err
 	}
 	return string(data), nil

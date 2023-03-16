@@ -9,12 +9,12 @@ func TestGetBranches(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log("branches:", branches, branches[0])
-	err = gomss.Checkout(branches[2])
+	_, err = gomss.Checkout(branches[2])
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	data, err := gomss.Build()
+	data, err := gomss.Build(false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,7 +23,7 @@ func TestGetBranches(t *testing.T) {
 
 func TestMake(t *testing.T) {
 	gomss := new(GomssOp)
-	data, err := gomss.Build()
+	data, err := gomss.Build(false)
 	if err != nil {
 		t.Fatal(err)
 	}
