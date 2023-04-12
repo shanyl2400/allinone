@@ -90,10 +90,14 @@ func (gb *GomssBuilder) Publish(gomssBranch, zrtcPath, version string, localZRTC
 		return err
 	}
 
+	zrtcVersion := zrtcPath
+	if localZRTC {
+		zrtcVersion = "zrtc-outer"
+	}
 	err = repository.GetPublishRecordRepository().Put(&model.PublishRecord{
 		Version:     version,
 		GomssBranch: gomssBranch,
-		ZrtcVersion: zrtcPath,
+		ZrtcVersion: zrtcVersion,
 	})
 	if err != nil {
 		return err
