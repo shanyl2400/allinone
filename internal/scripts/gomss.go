@@ -92,7 +92,7 @@ func (g *GomssOp) checkout(name string) (string, error) {
 }
 
 func (g *GomssOp) fetch() error {
-	_, err := execute("git", "fetch")
+	_, err := execute("git", "fetch", "--all")
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (g *GomssOp) fetch() error {
 }
 
 func (g *GomssOp) branches() ([]string, error) {
-	data, err := execute("git", "branch", "-r")
+	data, err := execute("git", "tag")
 	if err != nil {
 		return nil, err
 	}
