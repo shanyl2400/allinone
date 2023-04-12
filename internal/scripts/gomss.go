@@ -59,13 +59,13 @@ func (g *GomssOp) Build(localZRTC bool) ([]string, error) {
 	}
 
 	if localZRTC {
-		output2, err := execute("make", "tags=\"nolibopusfile zrtcoutside\"")
+		output2, err := execute("make", `tags=nolibopusfile zrtcoutside`)
 		ans = append(ans, output2)
 		if err != nil {
 			return ans, err
 		}
 	} else {
-		output2, err := execute("make", "tags=\"nolibopusfile\"")
+		output2, err := execute("make", "tags=nolibopusfile")
 		ans = append(ans, output2)
 		if err != nil {
 			return ans, err
@@ -117,6 +117,7 @@ func (g *GomssOp) branches() ([]string, error) {
 }
 
 func execute(name string, params ...string) (string, error) {
+	log.Printf("run command: %v, %v", name, params)
 	cmd := exec.Command(name, params...)
 	cmd.Dir = config.GetConfig().GomssPath
 	data, err := cmd.CombinedOutput()

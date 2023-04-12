@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 var (
@@ -71,10 +72,33 @@ func (z *ZrtcOp) DownloadZrtc(path string) ([]string, error) {
 		return nil, ErrNoSuchZRTC
 	}
 
-	output, err := execute("wget", zrtcURL+path, "-O", "zrtc", "-q")
-	ans = append(ans, output)
-	if err != nil {
-		return ans, err
+	//对.tar.gz包解压
+	if strings.HasSuffix(path, ".tar.gz") {
+		output, err := execute("wget", zrtcURL+path, "-O", "zrtc.tar.gz", "-q")
+		ans = append(ans, output)
+		if err != nil {
+			return ans, err
+		}
+
+		ans = append(ans, "tar xvf zrtc.tar.gz")
+		output, err = execute("tar", "xvf", "zrtc.tar.gz")
+		ans = append(ans, output)
+		if err != nil {
+			return ans, err
+		}
+
+		ans = append(ans, "rm -f zrtc.tar.gz")
+		output, err = execute("rm", "-f", "zrtc.tar.gz")
+		ans = append(ans, output)
+		if err != nil {
+			return ans, err
+		}
+	} else {
+		output, err := execute("wget", zrtcURL+path, "-O", "zrtc", "-q")
+		ans = append(ans, output)
+		if err != nil {
+			return ans, err
+		}
 	}
 
 	output2, err := execute("chmod", "+x", "zrtc")
