@@ -76,7 +76,7 @@ func (gb *GomssBuilder) Publish(gomssBranch, zrtcPath, version string, localZRTC
 
 	// 3.go get & make
 	gb.pushPublishLog("正在编译gomss...")
-	msgs, err := gb.gomss.Build(localZRTC)
+	msgs, err := gb.gomss.Build(gomssBranch, localZRTC)
 	gb.pushPublishLog(msgs...)
 	if err != nil {
 		return err

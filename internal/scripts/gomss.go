@@ -50,7 +50,7 @@ func (g *GomssOp) Checkout(branchName string) (string, error) {
 	return g.checkout(branchName)
 }
 
-func (g *GomssOp) Build(localZRTC bool) ([]string, error) {
+func (g *GomssOp) Build(gomssBranch string, localZRTC bool) ([]string, error) {
 	ans := make([]string, 0)
 	output, err := execute("go", "mod", "tidy")
 	ans = append(ans, output)
@@ -58,18 +58,22 @@ func (g *GomssOp) Build(localZRTC bool) ([]string, error) {
 		return ans, err
 	}
 
-	if localZRTC {
-		output2, err := execute("make", `tags=nolibopusfile zrtcoutside`)
+	var output2 string
+	switch gomssBranch[:2] {
+	case "v2":
+		output2, err = g.buildV2()
+	case "v3":
+		output2, err = g.buildV3(localZRTC)
+	case "v4":
+		output2, err = g.buildV4(localZRTC)
+	default:
+		output2, err = g.buildV2()
+	}
+	if output2 != "" {
 		ans = append(ans, output2)
-		if err != nil {
-			return ans, err
-		}
-	} else {
-		output2, err := execute("make", "tags=nolibopusfile")
-		ans = append(ans, output2)
-		if err != nil {
-			return ans, err
-		}
+	}
+	if err != nil {
+		return ans, err
 	}
 
 	return ans, nil
@@ -81,6 +85,48 @@ func (g *GomssOp) Publish(version string) (string, error) {
 		return data, err
 	}
 	return data, nil
+}
+
+func (g *GomssOp) buildV3(localZRTC bool) (string, error) {
+	var output string
+	var err error
+	if localZRTC {
+		output, err = execute("make", `tags=nolibopusfile zrtcoutside`)
+		if err != nil {
+			return output, err
+		}
+	} else {
+		output, err = execute("make", `tags=nolibopusfile`)
+		if err != nil {
+			return output, err
+		}
+	}
+	return output, nil
+}
+
+func (g *GomssOp) buildV4(localZRTC bool) (string, error) {
+	var output string
+	var err error
+	if localZRTC {
+		output, err = execute("make", `tags=noffmpeg,nozrtc`)
+		if err != nil {
+			return output, err
+		}
+	} else {
+		output, err = execute("make", "tags=noffmpeg")
+		if err != nil {
+			return output, err
+		}
+	}
+	return output, nil
+}
+
+func (g *GomssOp) buildV2() (string, error) {
+	output, err := execute("make")
+	if err != nil {
+		return output, err
+	}
+	return output, nil
 }
 
 func (g *GomssOp) checkout(name string) (string, error) {

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	zrtcURL = "https://go-test001.livecourse.com/zrtc/"
+	zrtcURL = "http://192.168.0.210/zrtc/"
 	re      = regexp.MustCompile(`<a href=\"(zrtc.*)\">(zrtc.*)</a>`)
 
 	ErrNoSuchZRTC = errors.New("no such zrtc")

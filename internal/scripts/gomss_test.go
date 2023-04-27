@@ -14,7 +14,7 @@ func TestGetBranches(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, err := gomss.Build(false)
+	data, err := gomss.Build("v4.3.3", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,8 +23,15 @@ func TestGetBranches(t *testing.T) {
 
 func TestMake(t *testing.T) {
 	gomss := new(GomssOp)
-	data, err := gomss.Build(false)
+	branch := "v4.3.2"
+	_, err := gomss.Checkout(branch)
 	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := gomss.Build(branch, true)
+	if err != nil {
+		t.Log("data:", data)
 		t.Fatal(err)
 	}
 	t.Log(data)

@@ -1,3 +1,3 @@
 gomss_path: "/home/shanyonglong/publish/gomss"
 boltdb_path: "./data"
-http_port: 8088
+http_port: 9090
