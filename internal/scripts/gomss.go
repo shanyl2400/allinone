@@ -66,6 +66,8 @@ func (g *GomssOp) Build(gomssBranch string, localZRTC bool) ([]string, error) {
 		output2, err = g.buildV3(localZRTC)
 	case "v4":
 		output2, err = g.buildV4(localZRTC)
+	case "v5":
+		output2, err = g.buildV4(localZRTC)
 	default:
 		output2, err = g.buildV2()
 	}
@@ -130,7 +132,12 @@ func (g *GomssOp) buildV2() (string, error) {
 }
 
 func (g *GomssOp) checkout(name string) (string, error) {
-	resp, err := execute("git", "checkout", name)
+	resp, err := execute("git", "checkout", "go.mod")
+	if err != nil {
+		return resp, err
+	}
+
+	resp, err = execute("git", "checkout", name)
 	if err != nil {
 		return resp, err
 	}
